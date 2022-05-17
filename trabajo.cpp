@@ -17,6 +17,8 @@ struct transicion {
 };
 
 string unCaracter(string texto);
+string unCaracterMayus(string texto);
+void evaluarPalabra(vector<transicion> vTransicion, string palabra);
 
 int main(int argc, char **argv){
 
@@ -25,7 +27,6 @@ int main(int argc, char **argv){
     vector<transicion> vTransicion;
     bool metodo; // Stack vacío = true, Estado final = false;
     string palabra, seguir, entrada;
-    stack<char> pila;
 
     // TRANSICIONES
     do {
@@ -34,19 +35,19 @@ int main(int argc, char **argv){
         do {
             cout << "Ingrese el estado en el que se encuentra el APD (q) como un número entero >= 0: ";
             cin >> t.estadoInicial;
-        } while(t.estadoInicial < 0);
+        } while(t.estadoInicial < 0); //int mayor a 0 falta solucionar el caso cuando ingresa una letra
 
-        t.simbolo = unCaracter("Ingrese símbolo (a) que se lee: ")[0];
+        t.simbolo = unCaracter("Ingrese símbolo (a) que se lee: ")[0]; //puede ser lower o int
 
-        t.simboloStack = unCaracter("Ingrese símbolo (z) en el tope de la pila: ")[0];
+        t.simboloStack = unCaracterMayus("Ingrese símbolo (z) en el tope de la pila: ")[0]; //puede ser solo un char upper
 
         do {
             cout << "Ingrese estado al que llega la transición (p) como un número entero >= 0: ";
             cin >> t.res.estadoFinal;
-        } while(t.res.estadoFinal < 0);
+        } while(t.res.estadoFinal < 0); //int mayor a 0 falta solucionar el caso cuando ingresa una letra
 
-        cout << "Ingrese conjunto de símbolos a poner en el stack (ß) como un string: ";
-        cin >> t.res.palabraStack;
+        cout << "Ingrese conjunto de símbolos para reemplazar en la pila del stack (ß) como un string (mayusculas o e si quiere sacar elementos del stack): ";
+        cin >> t.res.palabraStack; //no necesita mayores validaciones porque pueden ser solo mayusculas o e
 
         cout << "\nSe agregará la siguiente transición: T(" << t.estadoInicial << ", " << t.simbolo << ", " << t.simboloStack << ")=(" << t.res.estadoFinal << ", " << t.res.palabraStack << ")" << endl;
         
@@ -86,8 +87,10 @@ int main(int argc, char **argv){
 
     /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
+
+
     for(transicion a : vTransicion) {
-        /* cout << "T(" << a.estadoInicial << ", " << a.simbolo << ", " << a.simboloStack << ")=(" << a.res.estadoFinal << ", " << a.res.palabraStack << ")" << endl; */
+        cout << "T(" << a.estadoInicial << ", " << a.simbolo << ", " << a.simboloStack << ")=(" << a.res.estadoFinal << ", " << a.res.palabraStack << ")" << endl;
 
 
     }
@@ -95,13 +98,30 @@ int main(int argc, char **argv){
     return EXIT_SUCCESS;
 }
 
-string unCaracter(string texto) {
+void evaluarPalabra(vector<transicion> vTransicion, string palabra){
+    stack<char> pila;
+
+
+}
+
+string unCaracter(string texto) { //validacion para símbolo que lee
     string entrada;
 
     do {
         cout << texto;
         cin >> entrada;
-    } while(entrada.size() != 1);
+    } while(entrada.size() != 1 || (!islower(entrada[0]) && !isdigit(entrada[0]))); 
+
+    return entrada;
+}
+
+string unCaracterMayus(string texto) {
+    string entrada;
+
+    do {
+        cout << texto;
+        cin >> entrada;
+    } while(entrada.size() != 1 || !isupper(entrada[0]));
 
     return entrada;
 }
