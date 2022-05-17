@@ -16,9 +16,15 @@ struct transicion {
     resultado res;
 };
 
+struct DI{
+    int estadoActual;
+    string palabraPorLeer;
+    string contenidoStack;
+};
+
 string unCaracter(string texto);
 string unCaracterMayus(string texto);
-void evaluarPalabra(vector<transicion> vTransicion, string palabra);
+void evaluarPalabra(vector<transicion> vTransicion, string palabra,int estadoini, int estadofinal,bool metodo);
 
 int main(int argc, char **argv){
 
@@ -94,14 +100,46 @@ int main(int argc, char **argv){
 
 
     }
-
+    evaluarPalabra(vTransicion,palabra,estadoini,estadofinal,metodo);
     return EXIT_SUCCESS;
 }
 
-void evaluarPalabra(vector<transicion> vTransicion, string palabra){
+void evaluarPalabra(vector<transicion> vTransicion, string palabra,int estadoInicial,int estadoFinal, bool metodo){
     stack<char> pila;
-
-
+    pila.push('R');
+    int i = 0;
+    DI descinst;
+    descinst.estadoActual = estadoInicial;
+    descinst.palabraPorLeer = palabra;
+    descinst.contenidoStack = pila.top();
+    cout << "DI antes de iniciar: (" << descinst.estadoActual << "," << descinst.palabraPorLeer << "," << descinst.contenidoStack << ")" << endl;
+    if (metodo == false){
+        while (i<palabra.size()){
+            int j = 0;
+            int estadoActual = descinst.estadoActual;
+            char simboloLeer = palabra[i];
+            char simboloStack = pila.top();
+            while (estadoActual != vTransicion[j].estadoInicial && simboloLeer != vTransicion[j].simbolo && simboloStack != vTransicion[j].simboloStack){
+                j++;
+            }
+            //despues del while se encuentra la transicion en la posicion j
+            estadoActual = vTransicion[j].res.estadoFinal;
+            pila.pop();
+            descinst.estadoActual = estadoActual;
+            i++;
+            descinst.palabraPorLeer = palabra.substr(i,palabra.size()-i);
+            for (int k=vTransicion[j].res.palabraStack.size()-1; i>=0; i--){
+                pila.push(vTransicion[j].res.palabraStack[k]);
+            }
+            stack<char> aux = pila;
+            while (!aux.empty()){
+                descinst.contenidoStack += aux.top();
+                aux.pop();
+            }
+            cout << "DI despues de la transicion: (" << descinst.estadoActual << "," << descinst.palabraPorLeer << "," << descinst.contenidoStack << ")" << endl;
+        }
+        
+    }
 }
 
 string unCaracter(string texto) { //validacion para símbolo que lee
