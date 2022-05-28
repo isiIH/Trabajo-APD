@@ -4,34 +4,35 @@
 #include <vector>
 using namespace std;
 
-struct Resultado {
+struct resultado {
     int estadoFinal;
     string palabraStack;
 };
 
-struct Transicion {
+struct transicion {
     int estadoInicial;
     char simbolo;
     char simboloStack;
-    Resultado res;
+    resultado res;
 };
 
 struct DI{
-    int estadoActual;
-    string palabraPorLeer;
-    stack<char> contenidoStack;
+    int estado;
+    string porLeer;
+    string simbolosStack;
 };
 
 string unCaracter(string texto);
 string unCaracterMayus(string texto);
-void evaluarPalabra(vector<Transicion> &vTransicion, string palabra, int estadoini, int estadofinal, bool metodo);
-void imprimirPila(stack<char> pila);
+void evaluarPalabra(vector<transicion> vTransicion, string palabra, bool metodo, int estadoFinal, int estadoInicial);
+string extraerStr(stack<char> pila);
+void imprimeDI(vector<DI> descripcionesInst);
 
 int main(int argc, char **argv){
 
-    int estadoini, estadofinal = -1;
-    Transicion t;
-    vector<Transicion> vTransicion;
+    int estadoini, estadofinal;
+    transicion t;
+    vector<transicion> vTransicion;
     bool metodo; // Stack vacío = true, Estado final = false;
     string palabra, seguir, entrada;
 
@@ -88,109 +89,112 @@ int main(int argc, char **argv){
         } while(estadofinal < 0);
     }
 
-    /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-
-
-
-    /* for(Transicion a : vTransicion) {
-        cout << "T(" << a.estadoInicial << ", " << a.simbolo << ", " << a.simboloStack << ")=(" << a.res.estadoFinal << ", " << a.res.palabraStack << ")" << endl;
-    } */
-
+    //PALABRA
     do {
-        //PALABRA
         cout << "Ingrese la palabra a evaluar: ";
         cin >> palabra;
-
-        evaluarPalabra(vTransicion,palabra,estadoini,estadofinal,metodo);
-
-        cout << "Para probar otra palabra pulse enter, cualquier otra letra para terminar... ";
+        evaluarPalabra(vTransicion, palabra, metodo, estadofinal, estadoini);
+        cout << "Presione enter si quiere evaluar otra palabra, cualquier otra letra para parar... ";
         cin.ignore();
         getline(cin, seguir);
     } while(seguir == "");
 
+
+
+    for(transicion a : vTransicion) {
+        cout << "T(" << a.estadoInicial << ", " << a.simbolo << ", " << a.simboloStack << ")=(" << a.res.estadoFinal << ", " << a.res.palabraStack << ")" << endl;
+
+
+    }
+
     return EXIT_SUCCESS;
 }
 
-void evaluarPalabra(vector<Transicion> &vTransicion, string palabra, int estadoInicial,int estadoFinal, bool metodo){
-    int i = 0;
-    DI descinst;
+void evaluarPalabra(vector<transicion> vTransicion, string palabra, bool metodo, int estadoFinal, int estadoInicial){
+    vector<DI> descripcionesInst;
+    DI di;
+    stack<char> pila;
 
-    descinst.estadoActual = estadoInicial;
-    descinst.palabraPorLeer = palabra;
-    descinst.contenidoStack.push(vTransicion[0].simboloStack); // R u otro símbolo en la base del stack
+    //comenzar definiendo la primera descripcion segun la primera transicion de vTransicion
+    di.estado = estadoInicial;
+    di.porLeer = palabra;
+    di.simbolosStack = vTransicion[0].simboloStack;
+    descripcionesInst.push_back(di);
+    pila.push(vTransicion[0].simboloStack);
+    bool aceptado=false;
 
-    cout << "DI: (" << descinst.estadoActual << "," << descinst.palabraPorLeer << ",";
-    imprimirPila(descinst.contenidoStack);
-    cout << ")" << endl;
-
-    int j, estadoActual;
-    char simboloLeer, simboloStack;
-    while (i<palabra.length()){
-        j = 0;
-        estadoActual = descinst.estadoActual;
-        simboloLeer = palabra[i];
-        simboloStack = descinst.contenidoStack.top();
-
-        while (j < vTransicion.size() && ( estadoActual != vTransicion[j].estadoInicial || simboloLeer != vTransicion[j].simbolo || simboloStack != vTransicion[j].simboloStack )){
-            j++;
-        }
-        if(j >= vTransicion.size()) {  //Si no hay transición para el estado actual
-            cout << "La palabra ingresada no es aceptada por el lenguaje" << endl;
-            return;
-        }
-        //despues del while se encuentra la transicion en la posicion j
-        estadoActual = vTransicion[j].res.estadoFinal;
-        descinst.contenidoStack.pop();
-        descinst.estadoActual = estadoActual;
-        i++;
-        descinst.palabraPorLeer = palabra.substr(i,palabra.length()-i);
-
-        if(vTransicion[j].res.palabraStack != "e") { //Si hay que sacar el símbolo del stack no hace nada
-            for (int k=vTransicion[j].res.palabraStack.length()-1; k>=0; k--){
-                descinst.contenidoStack.push(vTransicion[j].res.palabraStack[k]);
+    //recorremos toda la palabra
+    for (int i=0; i<palabra.size(); i++){
+        aceptado = false;
+        // buscamos en vTransicione que coincida vTransicion[x].simbolo y vTransicion[x].simboloStack
+        for (int j=0; j<vTransicion.size();j++){
+            if (vTransicion[j].estadoInicial == descripcionesInst[descripcionesInst.size()-1].estado && vTransicion[j].simbolo == palabra[i] && vTransicion[j].simboloStack==descripcionesInst[descripcionesInst.size()-1].simbolosStack[0]){
+                di.estado = vTransicion[j].res.estadoFinal;
+                // ve el caso cuando no queda mas palabra por leer
+                di.porLeer = palabra.substr(i+1);
+                if (i==palabra.size()-1) di.porLeer = "e";
+                pila.pop();
+                if (vTransicion[j].res.palabraStack!="e"){
+                    for (int x=vTransicion[j].res.palabraStack.size()-1; x>=0; x--){
+                        pila.push(vTransicion[j].res.palabraStack[x]);
+                    }
+                }
+                di.simbolosStack = extraerStr(pila);
+                descripcionesInst.push_back(di);
+                aceptado = true;
             }
+            if (aceptado) break;
         }
-
-        cout << "DI: (" << descinst.estadoActual << "," << descinst.palabraPorLeer << ",";
-        imprimirPila(descinst.contenidoStack);
-        cout << ")" << endl;
-
+        if (!aceptado) break;
     }
 
-    j = 0;
-    while(j < vTransicion.size() && ( vTransicion[j].simbolo != 'e' || vTransicion[j].simboloStack != descinst.contenidoStack.top()) ) {
-        j++;
-    }
-    if(j < vTransicion.size()) {
-        descinst.estadoActual = vTransicion[j].res.estadoFinal;
-        descinst.contenidoStack.pop();
-        if(vTransicion[j].res.palabraStack != "e") { //Si hay que sacar el símbolo del stack no hace nada
-            for (int k=vTransicion[j].res.palabraStack.size()-1; k>=0; k--){
-                descinst.contenidoStack.push(vTransicion[j].res.palabraStack[k]);
-            }
-        }
-    } else {
-        cout << "La palabra ingresada no es aceptada por el lenguaje" << endl;
-        return;
-    }
+    if (descripcionesInst[descripcionesInst.size()-1].simbolosStack != "R") aceptado = false;
 
-    cout << "DI: (" << descinst.estadoActual << "," << descinst.palabraPorLeer << ",";
-    imprimirPila(descinst.contenidoStack);
-    cout << ")" << endl;
-        
-    if(metodo == false) {
-        if(descinst.estadoActual == estadoFinal) {
-            cout << "Se aceptó la palabra " << palabra << " por estado final" << endl;
-            return;
+    if (aceptado & metodo){
+        di.estado = vTransicion[vTransicion.size()-1].res.estadoFinal;
+        di.porLeer = "e";
+        di.simbolosStack = "e";
+    }
+    else if (aceptado & !metodo)
+    {
+        di.estado = estadoFinal;
+        di.porLeer = "e";
+        di.simbolosStack = "R";
+    }
+    descripcionesInst.push_back(di);
+
+    if (aceptado){
+        cout << "Acepta la palabra " << palabra << endl;
+        cout << "Descpriciones instantáneas: " << endl;
+        imprimeDI(descripcionesInst);
+    }
+    else {
+        cout << "No acepta la palabra " << palabra << endl;
+        cout << "Porque: " << endl;
+        imprimeDI(descripcionesInst);
+    }
+}
+
+void imprimeDI(vector<DI> descripcionesInst){
+    for (int i=0; i<descripcionesInst.size(); i++){
+        cout << "(" << descripcionesInst[i].estado << ", " << descripcionesInst[i].porLeer << ", " << descripcionesInst[i].simbolosStack << ")";
+        if (i!=descripcionesInst.size()-1){
+            cout << "|------" ;
         }
-    } else {
-        if(descinst.contenidoStack.empty()) {
-            cout << "Se aceptó la palabra " << palabra << " por stack vacío" << endl;
-            return;
+        else{
+            cout <<  endl;
         }
     }
+}
 
-
+string extraerStr(stack<char> pila){
+    stack<char> pilaAux = pila;
+    string pilaString = "";
+    while (!pilaAux.empty()){
+        pilaString += pilaAux.top();
+        pilaAux.pop();
+    }
+    return pilaString;
 }
 
 string unCaracter(string texto) { //validacion para símbolo que lee
@@ -199,7 +203,7 @@ string unCaracter(string texto) { //validacion para símbolo que lee
     do {
         cout << texto;
         cin >> entrada;
-    } while(entrada.length() != 1 || (!islower(entrada[0]) && !isdigit(entrada[0]))); 
+    } while(entrada.size() != 1 || (!islower(entrada[0]) && !isdigit(entrada[0]))); 
 
     return entrada;
 }
@@ -210,14 +214,7 @@ string unCaracterMayus(string texto) {
     do {
         cout << texto;
         cin >> entrada;
-    } while(entrada.length() != 1 || !isupper(entrada[0]));
+    } while(entrada.size() != 1 || !isupper(entrada[0]));
 
     return entrada;
-}
-
-void imprimirPila(stack<char> pila) {
-    while(!pila.empty()) {
-        cout << pila.top();
-        pila.pop();
-    }
 }
