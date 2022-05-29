@@ -141,17 +141,15 @@ int main(int argc, char **argv){
 }
 
 void evaluarPalabra(vector<Transicion> &vTransicion, string palabra, int estadoInicial,int estadoFinal, bool metodo){
-    int i = 0;
     DI descinst;
+    int j=0, estadoActual;
+    char simboloLeer, simboloStack;
 
     descinst.estadoActual = estadoInicial;
     descinst.palabraPorLeer = palabra;
     descinst.contenidoStack.push(vTransicion[0].simboloStack); // R u otro símbolo en la base del stack
 
     imprimirDI(descinst);
-
-    int j=0, estadoActual;
-    char simboloLeer, simboloStack;
 
     while(j < vTransicion.size() ) { //Ve si existen transiciones antes de leer la palabra
         if(descinst.estadoActual == vTransicion[j].estadoInicial & vTransicion[j].simbolo == 'E' & vTransicion[j].simboloStack == descinst.contenidoStack.top()) {
@@ -169,7 +167,7 @@ void evaluarPalabra(vector<Transicion> &vTransicion, string palabra, int estadoI
         j++;
     }
 
-    while (descinst.palabraPorLeer != ""){
+    for(int i = 0; i<palabra.size(); i++){
         j = 0;
         estadoActual = descinst.estadoActual;
         simboloLeer = palabra[i];
@@ -186,8 +184,7 @@ void evaluarPalabra(vector<Transicion> &vTransicion, string palabra, int estadoI
         // Despues del while se encuentra la transicion en la posicion j
         descinst.contenidoStack.pop();
         descinst.estadoActual = vTransicion[j].res.estadoFinal;
-        i++;
-        descinst.palabraPorLeer = palabra.substr(i,palabra.length()-i);
+        descinst.palabraPorLeer = palabra.substr(i+1,palabra.length()-i-1);
 
         if(vTransicion[j].res.palabraStack != "") { //Si hay que sacar el símbolo del stack no hace nada
             for (int k=vTransicion[j].res.palabraStack.length()-1; k>=0; k--){
@@ -196,7 +193,6 @@ void evaluarPalabra(vector<Transicion> &vTransicion, string palabra, int estadoI
         }
 
         imprimirDI(descinst);
-
     }
 
     if(metodo == false) { //ACEPTAR POR ESTADO FINAL
@@ -254,9 +250,6 @@ char unCaracter(string texto) { // Validacion para símbolo que lee
         cout << texto;
         cin >> entrada;
     } while(entrada.length() != 1 || (isupper(entrada[0]) && !isdigit(entrada[0])) ); 
-    //                             A        v                       v               v
-    //                             a        f                       v               f
-    //                             1        v                       f               f
 
     return entrada[0];
 }
