@@ -2,7 +2,7 @@
 #include <stack>
 #include <string>
 #include <vector>
-#include <algorithm>
+#include <ctype.h>
 using namespace std;
 
 struct Resultado {
@@ -198,7 +198,7 @@ void evaluarPalabra(vector<Transicion> &vTransicion, string palabra, int estadoI
 
 }
 
-char unCaracter(string texto) { // Validacion para símbolo que lee
+char unCaracter(string texto) { // Validacion para símbolo que lee: Letras en minúsculas, números y símbolos 
     string entrada;
 
     do {
